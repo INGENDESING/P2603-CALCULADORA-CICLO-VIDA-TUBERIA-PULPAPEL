@@ -68,9 +68,9 @@ git push -u origin main
 1. Ir a [render.com](https://render.com) e iniciar sesión.
 2. **New → Web Service → Connect a repository**.
 3. Seleccionar el repositorio de GitHub.
-4. Render detectará el `Procfile` y configurará:
+4. Render detectará el `Procfile` (`bash start.sh`) y configurará:
    - **Build command:** `pip install -r requirements.txt`
-   - **Start command:** `uvicorn webapp.main:app --host 0.0.0.0 --port $PORT`
+   - **Start command:** `bash start.sh`
    - **Health check path:** `/health`
 5. Hacer clic en **Deploy**.
 
