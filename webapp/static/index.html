@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2603 SW-K60 — Vida útil de tuberías</title>
+    <script src="/static/plotly.min.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+    <h1>P2603 SW-K60 — Vida útil de tuberías</h1>
+    <div class="meta">Evaluación corrosión-erosión · SS304 / SS304L / A53 Gr B</div>
+</header>
+
+<main>
+    <section class="panel downloads-panel">
+        <h2>Entregables del proyecto</h2>
+        <div class="actions">
+            <a href="/api/descargas/informe" class="download-link" download>
+                <button>📄 Descargar informe Rev.1 (PDF)</button>
+            </a>
+            <a href="/api/descargas/presentacion" class="download-link" download>
+                <button>📊 Descargar presentación Rev.1 (PPTX)</button>
+            </a>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>Condiciones de operación</h2>
+        <div class="form-grid">
+            <div class="field">
+                <label for="material">Material</label>
+                <select id="material">
+                    <option value="SS304" selected>SS304</option>
+                    <option value="SS304L">SS304L</option>
+                    <option value="A53 GRB">A53 Gr B ERW</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="nps">Diámetro nominal (NPS)</label>
+                <select id="nps">
+                    <option value='NPS 3"'>3"</option>
+                    <option value='NPS 4"'>4"</option>
+                    <option value='NPS 6"'>6"</option>
+                    <option value='NPS 8"'>8"</option>
+                    <option value='NPS 10"' selected>10"</option>
+                    <option value='NPS 12"'>12"</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="schedule">Cédula</label>
+                <select id="schedule"></select>
+            </div>
+            <div class="field">
+                <label for="escenario">Escenario</label>
+                <select id="escenario">
+                    <option value="Alcalino" selected>Alcalino (licor blanco/negro)</option>
+                    <option value="Acido">Ácido severo (bleach plant)</option>
+                    <option value="Neutro">Neutro-oxidante (white water)</option>
+                    <option value="Recuperacion">Recuperación (evaporadores)</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="Cs">Consistencia pulpa Cs (%)</label>
+                <input type="number" id="Cs" value="6" min="0" max="80" step="0.1">
+            </div>
+            <div class="field">
+                <label for="v">Velocidad v (m/s)</label>
+                <input type="number" id="v" value="2.5" min="0" max="8" step="0.1">
+            </div>
+            <div class="field">
+                <label for="T">Temperatura T (°C)</label>
+                <input type="number" id="T" value="" placeholder="Por defecto escenario" min="20" max="250" step="1">
+            </div>
+            <div class="field">
+                <label for="beta">β pulpa refinada</label>
+                <input type="number" id="beta" value="0" min="0" max="0.9" step="0.05">
+            </div>
+            <div class="field">
+                <label for="k0_override">k₀ override</label>
+                <input type="number" id="k0_override" value="" placeholder="Por defecto material" min="0" step="0.0001">
+            </div>
+            <div class="field">
+                <label for="fs">Factor de seguridad FS</label>
+                <input type="number" id="fs" value="1.1" min="1" max="3" step="0.1">
+            </div>
+        </div>
+
+        <div class="actions">
+            <button id="btn-vida" class="primary">Calcular vida útil</button>
+            <button id="btn-tabla">Calcular tabla</button>
+            <button id="btn-sens">Sensibilidad FS</button>
+            <button id="btn-critica">Condición crítica 60 °C</button>
+        </div>
+        <div class="export-actions" id="export-actions" style="display:none;">
+            <button id="btn-csv">Exportar CSV</button>
+            <button id="btn-excel">Exportar Excel</button>
+        </div>
+    </section>
+
+    <section id="kpi-section" class="kpi-grid" style="display:none;">
+        <div class="kpi"><div class="l">Vida útil</div><div class="v" id="kpi-vida">—</div></div>
+        <div class="kpi"><div class="l">Espesor disponible</div><div class="v" id="kpi-tdisp">—</div></div>
+        <div class="kpi"><div class="l">W_total</div><div class="v" id="kpi-wtotal">—</div></div>
+        <div class="kpi"><div class="l">W_quim</div><div class="v" id="kpi-wquim">—</div></div>
+        <div class="kpi"><div class="l">W_ero</div><div class="v" id="kpi-wero">—</div></div>
+        <div class="kpi"><div class="l">S admisible</div><div class="v" id="kpi-s">—</div></div>
+    </section>
+
+    <section id="warnings-section" class="panel warnings" style="display:none;">
+        <h2>⚠️ Advertencias de validez del modelo</h2>
+        <ul id="warnings-list"></ul>
+    </section>
+
+    <section id="result-section" class="panel" style="display:none;">
+        <h2 id="result-title">Resultados</h2>
+        <div id="result-table"></div>
+    </section>
+
+    <section class="plot-grid">
+        <div class="plot" id="plot-barras"></div>
+        <div class="plot" id="plot-sens"></div>
+    </section>
+</main>
+
+<footer>
+    DML Ingeniería · P2603 SW-K60 · Generado automáticamente
+</footer>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

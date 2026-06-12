@@ -1,0 +1,60 @@
+# Entornos virtuales
+.venv/
+venv/
+env/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDEs y editores
+.vs/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs y bases de datos locales
+*.log
+*.sqlite
+*.sqlite3
+slnx.sqlite
+
+# LaTeX / compilación
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.out
+*.synctex.gz
+*.toc
+P2603-PR-INF-001/build/
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Archivos obsoletos explicitamente marcados como no enviar
+*_OBSOLETO_no_enviar.pdf
+*_OBSOLETO_no_enviar.pptx

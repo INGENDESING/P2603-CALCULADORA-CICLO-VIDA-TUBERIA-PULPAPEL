@@ -1,0 +1,267 @@
+:root {
+    --dml-verde: #2e7d32;
+    --dml-verde-oscuro: #1b5e20;
+    --dml-gris: #424242;
+    --dml-fondo: #fafafa;
+    --dml-borde: #ddd;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "TeX Gyre Termes", Georgia, "Times New Roman", serif;
+    margin: 0;
+    background: var(--dml-fondo);
+    color: #222;
+    line-height: 1.5;
+}
+
+header {
+    background: var(--dml-verde);
+    color: white;
+    padding: 1.2rem 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 500;
+}
+
+header .meta {
+    opacity: 0.9;
+    font-size: 0.9rem;
+    margin-top: 0.2rem;
+}
+
+main {
+    max-width: 1300px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+}
+
+.panel {
+    background: white;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+    border-radius: 4px;
+}
+
+.panel h2 {
+    margin-top: 0;
+    color: var(--dml-gris);
+    font-size: 1.2rem;
+    border-bottom: 2px solid var(--dml-verde);
+    padding-bottom: 0.5rem;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+}
+
+.field label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 0.3rem;
+}
+
+.field input,
+.field select {
+    padding: 0.5rem;
+    border: 1px solid var(--dml-borde);
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 0.95rem;
+}
+
+.field input:focus,
+.field select:focus {
+    outline: none;
+    border-color: var(--dml-verde);
+    box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.15);
+}
+
+.actions,
+.export-actions {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+button {
+    padding: 0.65rem 1.2rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.95rem;
+    transition: background 0.2s;
+}
+
+button.primary {
+    background: var(--dml-verde);
+    color: white;
+}
+
+button.primary:hover {
+    background: var(--dml-verde-oscuro);
+}
+
+button:not(.primary) {
+    background: #e0e0e0;
+    color: #333;
+}
+
+button:not(.primary):hover {
+    background: #d0d0d0;
+}
+
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.kpi {
+    background: white;
+    padding: 1rem 1.2rem;
+    border-left: 4px solid var(--dml-verde);
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+    border-radius: 4px;
+}
+
+.kpi .v {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--dml-gris);
+}
+
+.kpi .l {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: #777;
+}
+
+#result-table {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+th, td {
+    border: 1px solid var(--dml-borde);
+    padding: 0.5rem;
+    text-align: center;
+}
+
+th {
+    background: var(--dml-verde);
+    color: white;
+    font-weight: 600;
+}
+
+tr:nth-child(even) {
+    background: #f5f5f5;
+}
+
+.plot-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+    gap: 1.5rem;
+}
+
+.plot {
+    background: white;
+    padding: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+    border-radius: 4px;
+    min-height: 350px;
+}
+
+.error {
+    color: #c62828;
+    background: #ffebee;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.info {
+    color: #1565c0;
+    background: #e3f2fd;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.warnings {
+    background: #fff8e1;
+    border-left: 4px solid #f9a825;
+}
+
+.warnings h2 {
+    border-bottom-color: #f9a825;
+    color: #5d4037;
+}
+
+.warnings ul {
+    margin: 0;
+    padding-left: 1.2rem;
+}
+
+.warnings li {
+    margin-bottom: 0.5rem;
+    color: #5d4037;
+}
+
+.downloads-panel .actions {
+    margin-top: 1rem;
+}
+
+.downloads-panel a {
+    text-decoration: none;
+}
+
+.downloads-panel button {
+    background: var(--dml-verde);
+    color: white;
+}
+
+.downloads-panel button:hover {
+    background: var(--dml-verde-oscuro);
+}
+
+footer {
+    text-align: center;
+    padding: 2rem;
+    color: #777;
+    font-size: 0.85rem;
+}
+
+@media (max-width: 600px) {
+    main {
+        padding: 0 0.75rem;
+    }
+    .plot-grid {
+        grid-template-columns: 1fr;
+    }
+}
