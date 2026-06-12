@@ -1,13 +1,11 @@
 services:
   - type: web
-    name: p2603-sw-k60-webapp
+    name: p2603-calculadora-ciclo-vida-tuberia
     runtime: python
     plan: free
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn -w 2 -k uvicorn.workers.UvicornWorker webapp.main:app --bind 0.0.0.0:$PORT"
+    startCommand: "gunicorn -w 1 -k uvicorn.workers.UvicornWorker webapp.main:app --bind 0.0.0.0:$PORT"
     envVars:
       - key: PYTHON_VERSION
         value: "3.11"
-      - key: PORT
-        value: "10000"
     healthCheckPath: /health

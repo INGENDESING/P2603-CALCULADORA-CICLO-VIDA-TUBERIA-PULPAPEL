@@ -70,7 +70,7 @@ git push -u origin main
 3. Seleccionar el repositorio de GitHub.
 4. Render detectará el archivo `render.yaml` y configurará:
    - **Build command:** `pip install -r requirements.txt`
-   - **Start command:** `gunicorn -w 2 -k uvicorn.workers.UvicornWorker webapp.main:app --bind 0.0.0.0:$PORT`
+   - **Start command:** `gunicorn -w 1 -k uvicorn.workers.UvicornWorker webapp.main:app --bind 0.0.0.0:$PORT`
    - **Health check path:** `/health`
 5. Hacer clic en **Deploy**.
 
