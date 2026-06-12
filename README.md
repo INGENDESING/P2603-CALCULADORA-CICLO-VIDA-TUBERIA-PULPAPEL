@@ -70,7 +70,7 @@ git push -u origin main
 3. Seleccionar el repositorio de GitHub.
 4. Render detectará el `Procfile` y configurará:
    - **Build command:** `pip install -r requirements.txt`
-   - **Start command:** `gunicorn -w 1 -k uvicorn.workers.UvicornWorker asgi:app --bind 0.0.0.0:$PORT`
+   - **Start command:** `gunicorn wsgi:application --bind 0.0.0.0:$PORT`
    - **Health check path:** `/health`
 5. Hacer clic en **Deploy**.
 
