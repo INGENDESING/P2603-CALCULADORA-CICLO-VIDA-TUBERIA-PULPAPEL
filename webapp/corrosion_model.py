@@ -402,6 +402,35 @@ def condicion_critica_60C() -> List[Dict[str, int]]:
     return rows
 
 
+def condicion_critica_detalle(nps: str = 'NPS 10"') -> Dict[str, Dict[str, float]]:
+    """
+    Descomposición completa (calc_vida) de la condición crítica 60 °C para un NPS,
+    por material, en Sch 40S (inoxidables) y Sch 40 (A53).
+
+    Replica exactamente los overrides de condicion_critica_60C(): Arrhenius
+    60 ← 150 °C sobre W_quim y k₀,ref escalado simétricamente para A53.
+    """
+    T = 60.0
+    T_ref = 150.0
+    k0_ref = 0.0035
+    beta = 0.25
+    esc = 'Alcalino'
+
+    OD = PIPES_SS[nps]['OD']
+    t_40S = PIPES_SS[nps]['t_40S']
+    t_40_a53 = PIPES_A53[nps]['t_40']
+
+    W_quim_ss = ESCENARIOS[esc]['W_quim_SS'] * math.exp(0.015 * (T - T_ref))
+    W_quim_a53 = ESCENARIOS[esc]['W_quim_A53'] * math.exp(0.015 * (T - T_ref))
+    k0_ref_a53 = 0.025 * (k0_ref / 0.008)
+
+    return {
+        'SS304': calc_vida(OD, t_40S, 'SS304', esc, 6.0, 3.5, T, beta, k0_ref, W_quim_override=W_quim_ss),
+        'SS304L': calc_vida(OD, t_40S, 'SS304L', esc, 6.0, 3.5, T, beta, k0_ref, W_quim_override=GAMMA_304L * W_quim_ss),
+        'A53 GRB': calc_vida(OD, t_40_a53, 'A53 GRB', esc, 6.0, 3.5, T, beta, k0_ref_a53, W_quim_override=W_quim_a53),
+    }
+
+
 def format_vida(vida: float) -> float:
     """Redondeo consistente con las tablas del informe."""
     if vida <= 0:

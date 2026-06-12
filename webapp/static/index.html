@@ -3,123 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>P2603 SW-K60 — Vida útil de tuberías</title>
+    <title>P2603 SW-K60 — Ciclo de vida de tuberías</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 <header>
-    <h1>P2603 SW-K60 — Vida útil de tuberías</h1>
-    <div class="meta">Evaluación corrosión-erosión · SS304 / SS304L / A53 Gr B</div>
+    <div class="brand">
+        <h1>P2603 SW-K60 <span class="divider">·</span> <span class="accent-text">Ciclo de vida de tuberías</span></h1>
+        <div class="meta">Evaluación corrosión-erosión · SS304 / SS304L / A53 Gr B · Cartón Colombia (SmurfitWestrock)</div>
+    </div>
+    <div class="downloads">
+        <a class="btn-download" href="/api/descargas/informe" title="Informe técnico P2603-PR-INF-001 Rev.1 (PDF)">⭳ Informe PDF</a>
+        <a class="btn-download" href="/api/descargas/presentacion" title="Presentación P2603-PR-PPT-001 Rev.1 (PPTX)">⭳ Presentación</a>
+    </div>
 </header>
 
+<nav class="tabs" role="tablist">
+    <button class="tab active" data-tab="resumen" role="tab" aria-selected="true">Resumen Ejecutivo</button>
+    <button class="tab" data-tab="calculadora" role="tab" aria-selected="false">Calculadora</button>
+</nav>
+
 <main>
-    <section class="panel">
-        <h2>Condiciones de operación</h2>
-        <div class="form-grid">
-            <div class="field">
-                <label for="material">Material</label>
-                <select id="material">
-                    <option value="SS304" selected>SS304</option>
-                    <option value="SS304L">SS304L</option>
-                    <option value="A53 GRB">A53 Gr B ERW</option>
-                </select>
+    <!-- ================= PESTAÑA 1: RESUMEN EJECUTIVO ================= -->
+    <section id="tab-resumen" class="tab-panel active">
+        <div class="dash-context panel" id="dash-context">
+            <span class="pulse-dot"></span>
+            <span id="dash-descripcion">Cargando datos del modelo…</span>
+        </div>
+
+        <div class="kpi-row" id="dash-kpis">
+            <div class="kpi-card" id="kpic-ss304">
+                <div class="kpi-label">Vida útil · SS304 Sch 40S</div>
+                <div class="kpi-value"><span id="dkpi-ss304">—</span><span class="kpi-unit"> años</span></div>
+                <div class="kpi-sub" id="dkpi-ss304-sub">NPS 10" · condición crítica</div>
             </div>
-            <div class="field">
-                <label for="nps">Diámetro nominal (NPS)</label>
-                <select id="nps">
-                    <option value='NPS 3"'>3"</option>
-                    <option value='NPS 4"'>4"</option>
-                    <option value='NPS 6"'>6"</option>
-                    <option value='NPS 8"'>8"</option>
-                    <option value='NPS 10"' selected>10"</option>
-                    <option value='NPS 12"'>12"</option>
-                </select>
+            <div class="kpi-card" id="kpic-ss304l">
+                <div class="kpi-label">Vida útil · SS304L Sch 40S</div>
+                <div class="kpi-value"><span id="dkpi-ss304l">—</span><span class="kpi-unit"> años</span></div>
+                <div class="kpi-sub" id="dkpi-ss304l-sub">NPS 10" · condición crítica</div>
             </div>
-            <div class="field">
-                <label for="schedule">Cédula</label>
-                <select id="schedule"></select>
+            <div class="kpi-card" id="kpic-a53">
+                <div class="kpi-label">Vida útil · A53 Gr B Sch 40</div>
+                <div class="kpi-value"><span id="dkpi-a53">—</span><span class="kpi-unit"> años</span></div>
+                <div class="kpi-sub" id="dkpi-a53-sub">NPS 10" · condición crítica</div>
             </div>
-            <div class="field">
-                <label for="escenario">Escenario</label>
-                <select id="escenario">
-                    <option value="Alcalino" selected>Alcalino (licor blanco/negro)</option>
-                    <option value="Acido">Ácido severo (bleach plant)</option>
-                    <option value="Neutro">Neutro-oxidante (white water)</option>
-                    <option value="Recuperacion">Recuperación (evaporadores)</option>
-                </select>
+            <div class="kpi-card" id="kpic-tdisp">
+                <div class="kpi-label">Espesor disponible · SS304</div>
+                <div class="kpi-value"><span id="dkpi-tdisp">—</span><span class="kpi-unit"> mm</span></div>
+                <div class="kpi-sub">Sch 40S NPS 10"</div>
             </div>
-            <div class="field">
-                <label for="Cs">Consistencia pulpa Cs (%)</label>
-                <input type="number" id="Cs" value="6" min="0" max="80" step="0.1">
-            </div>
-            <div class="field">
-                <label for="v">Velocidad v (m/s)</label>
-                <input type="number" id="v" value="3.5" min="0" max="8" step="0.1">
-            </div>
-            <div class="field">
-                <label for="T">Temperatura T (°C)</label>
-                <input type="number" id="T" value="80" min="20" max="250" step="1">
-            </div>
-            <div class="field checkbox-field">
-                <label for="pulpa-refinada">
-                    <input type="checkbox" id="pulpa-refinada" checked>
-                    Pulpa refinada (β = 0,25, k₀,ref = 0,0035)
-                </label>
-            </div>
-            <div class="field">
-                <label for="beta">β pulpa refinada</label>
-                <input type="number" id="beta" value="0.25" min="0" max="0.9" step="0.05" readonly>
-            </div>
-            <div class="field">
-                <label for="k0_override">k₀ override</label>
-                <input type="number" id="k0_override" value="0.0035" min="0" step="0.0001" readonly>
-            </div>
-            <div class="field">
-                <label for="fs">Factor de seguridad FS</label>
-                <input type="number" id="fs" value="1.1" min="1" max="3" step="0.1">
+            <div class="kpi-card" id="kpic-wtotal">
+                <div class="kpi-label">Tasa de desgaste W<sub>total</sub></div>
+                <div class="kpi-value"><span id="dkpi-wtotal">—</span><span class="kpi-unit"> mm/año</span></div>
+                <div class="kpi-sub" id="dkpi-wdesc">W_quim + W_ero</div>
             </div>
         </div>
 
-        <div class="actions">
-            <button id="btn-vida" class="primary">Calcular vida útil</button>
-            <button id="btn-tabla">Calcular tabla</button>
-            <button id="btn-sens">Sensibilidad FS</button>
-            <button id="btn-critica">Condición crítica 60 °C</button>
+        <div class="dash-grid">
+            <div class="panel plot-panel">
+                <h2>Vida útil proyectada — SS304 Sch 40S</h2>
+                <div class="plot" id="dash-gauge"></div>
+            </div>
+            <div class="panel plot-panel">
+                <h2>Mapa de vida útil — material × escenario</h2>
+                <div class="plot" id="dash-heatmap"></div>
+            </div>
+            <div class="panel plot-panel wide">
+                <h2>Comparativa de materiales por diámetro — condición crítica 60 °C</h2>
+                <div class="plot" id="dash-comparativa"></div>
+            </div>
+            <div class="panel plot-panel">
+                <h2>Descomposición de la tasa de desgaste</h2>
+                <div class="plot" id="dash-descomp"></div>
+            </div>
+            <div class="panel plot-panel">
+                <h2>Sensibilidad al factor de seguridad</h2>
+                <div class="plot" id="dash-sens"></div>
+            </div>
+            <div class="panel wide">
+                <h2>Condición crítica 60 °C — vida útil proyectada (años)</h2>
+                <div id="dash-tabla-cc" class="table-wrap"></div>
+            </div>
         </div>
-        <div class="export-actions" id="export-actions" style="display:none;">
-            <button id="btn-csv">Exportar CSV</button>
-            <button id="btn-excel">Exportar Excel</button>
-        </div>
+
+        <section class="panel warnings" id="dash-warnings" style="display:none;">
+            <h2>Advertencias del modelo</h2>
+            <ul id="dash-warnings-list"></ul>
+        </section>
     </section>
 
-    <section id="kpi-section" class="kpi-grid" style="display:none;">
-        <div class="kpi"><div class="l">Vida útil</div><div class="v" id="kpi-vida">—</div></div>
-        <div class="kpi"><div class="l">Espesor disponible</div><div class="v" id="kpi-tdisp">—</div></div>
-        <div class="kpi"><div class="l">W_total</div><div class="v" id="kpi-wtotal">—</div></div>
-        <div class="kpi"><div class="l">W_quim</div><div class="v" id="kpi-wquim">—</div></div>
-        <div class="kpi"><div class="l">W_ero</div><div class="v" id="kpi-wero">—</div></div>
-        <div class="kpi"><div class="l">S admisible</div><div class="v" id="kpi-s">—</div></div>
-    </section>
+    <!-- ================= PESTAÑA 2: CALCULADORA ================= -->
+    <section id="tab-calculadora" class="tab-panel">
+        <section class="panel">
+            <h2>Condiciones de operación</h2>
+            <div class="form-grid">
+                <div class="field">
+                    <label for="material">Material</label>
+                    <select id="material">
+                        <option value="SS304" selected>SS304</option>
+                        <option value="SS304L">SS304L</option>
+                        <option value="A53 GRB">A53 Gr B ERW</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="nps">Diámetro nominal (NPS)</label>
+                    <select id="nps">
+                        <option value='NPS 3"'>3"</option>
+                        <option value='NPS 4"'>4"</option>
+                        <option value='NPS 6"'>6"</option>
+                        <option value='NPS 8"'>8"</option>
+                        <option value='NPS 10"' selected>10"</option>
+                        <option value='NPS 12"'>12"</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="schedule">Cédula</label>
+                    <select id="schedule"></select>
+                </div>
+                <div class="field">
+                    <label for="escenario">Escenario</label>
+                    <select id="escenario">
+                        <option value="Alcalino" selected>Alcalino (licor blanco/negro)</option>
+                        <option value="Acido">Ácido severo (bleach plant)</option>
+                        <option value="Neutro">Neutro-oxidante (white water)</option>
+                        <option value="Recuperacion">Recuperación (evaporadores)</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="Cs">Consistencia pulpa Cs (%)</label>
+                    <input type="number" id="Cs" value="6" min="0" max="80" step="0.1">
+                </div>
+                <div class="field">
+                    <label for="v">Velocidad v (m/s)</label>
+                    <input type="number" id="v" value="3.5" min="0" max="8" step="0.1">
+                </div>
+                <div class="field">
+                    <label for="T">Temperatura T (°C)</label>
+                    <input type="number" id="T" value="80" min="20" max="250" step="1">
+                </div>
+                <div class="field checkbox-field">
+                    <label for="pulpa-refinada">
+                        <input type="checkbox" id="pulpa-refinada" checked>
+                        Pulpa refinada (β = 0,25, k₀,ref = 0,0035)
+                    </label>
+                </div>
+                <div class="field">
+                    <label for="beta">β pulpa refinada</label>
+                    <input type="number" id="beta" value="0.25" min="0" max="0.9" step="0.05" readonly>
+                </div>
+                <div class="field">
+                    <label for="k0_override">k₀ override</label>
+                    <input type="number" id="k0_override" value="0.0035" min="0" step="0.0001" readonly>
+                </div>
+                <div class="field">
+                    <label for="fs">Factor de seguridad FS</label>
+                    <input type="number" id="fs" value="1.1" min="1" max="3" step="0.1">
+                </div>
+            </div>
 
-    <section id="warnings-section" class="panel warnings" style="display:none;">
-        <h2>⚠️ Advertencias de validez del modelo</h2>
-        <ul id="warnings-list"></ul>
-    </section>
+            <div class="actions">
+                <button id="btn-vida" class="primary">Calcular vida útil</button>
+                <button id="btn-tabla">Calcular tabla</button>
+                <button id="btn-sens">Sensibilidad FS</button>
+                <button id="btn-critica">Condición crítica 60 °C</button>
+            </div>
+            <div class="export-actions" id="export-actions" style="display:none;">
+                <button id="btn-csv">Exportar CSV</button>
+                <button id="btn-excel">Exportar Excel</button>
+            </div>
+        </section>
 
-    <section id="result-section" class="panel" style="display:none;">
-        <h2 id="result-title">Resultados</h2>
-        <div id="result-table"></div>
-    </section>
+        <section id="kpi-section" class="kpi-row" style="display:none;">
+            <div class="kpi-card"><div class="kpi-label">Vida útil</div><div class="kpi-value sm" id="kpi-vida">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">Espesor disponible</div><div class="kpi-value sm" id="kpi-tdisp">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">W<sub>total</sub></div><div class="kpi-value sm" id="kpi-wtotal">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">W<sub>quim</sub></div><div class="kpi-value sm" id="kpi-wquim">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">W<sub>ero</sub></div><div class="kpi-value sm" id="kpi-wero">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">S admisible</div><div class="kpi-value sm" id="kpi-s">—</div></div>
+        </section>
 
-    <section class="plot-grid">
-        <div class="plot" id="plot-barras"></div>
-        <div class="plot" id="plot-sens"></div>
+        <section id="warnings-section" class="panel warnings" style="display:none;">
+            <h2>Advertencias de validez del modelo</h2>
+            <ul id="warnings-list"></ul>
+        </section>
+
+        <section id="result-section" class="panel" style="display:none;">
+            <h2 id="result-title">Resultados</h2>
+            <div id="result-table" class="table-wrap"></div>
+        </section>
+
+        <section class="plot-grid">
+            <div class="panel plot-panel" id="panel-barras" style="display:none;"><div class="plot" id="plot-barras"></div></div>
+            <div class="panel plot-panel" id="panel-sens" style="display:none;"><div class="plot" id="plot-sens"></div></div>
+        </section>
     </section>
 </main>
 
+<div id="toast-container"></div>
+
 <footer>
-    DML Ingeniería · P2603 SW-K60 · Generado automáticamente
+    DML Ingeniería · P2603 SW-K60 · Modelo basado en el informe P2603-PR-INF-001 Rev.1 · Los resultados no sustituyen el juicio de un ingeniero calificado
 </footer>
 
 <script src="/static/app.js"></script>

@@ -262,3 +262,76 @@ class MaterialesResponse(BaseModel):
 
 class EscenariosResponse(BaseModel):
     escenarios: List[EscenarioInfo]
+
+
+# =============================================================================
+# DASHBOARD EJECUTIVO
+# =============================================================================
+
+class DashboardKpis(BaseModel):
+    vida_ss304_40s: float
+    vida_ss304l_40s: float
+    vida_a53_40: float
+    t_disp_ss304_40s: float
+    W_quim: float
+    W_ero: float
+    W_total: float
+    unidades: Dict[str, str]
+
+
+class DashboardCasoBase(BaseModel):
+    descripcion: str
+    parametros: Dict[str, float]
+    nps_ref: str
+    kpis: DashboardKpis
+
+
+class DashboardCondicionTipica(BaseModel):
+    escenario: str
+    T: float
+    v: float
+    Cs: float
+
+
+class DashboardHeatmap(BaseModel):
+    materiales: List[str]
+    escenarios: List[str]
+    escenarios_nombres: List[str]
+    condiciones: List[DashboardCondicionTipica]
+    valores: List[List[float]]
+
+
+class DashboardSerie(BaseModel):
+    id: str
+    nombre: str
+    valores: List[int]
+
+
+class DashboardComparativa(BaseModel):
+    nps: List[str]
+    series: List[DashboardSerie]
+
+
+class DashboardDescomposicion(BaseModel):
+    materiales: List[str]
+    W_quim: List[float]
+    W_ero: List[float]
+    unidad: str
+
+
+class DashboardSensibilidad(BaseModel):
+    material: str
+    nps: str
+    schedule: str
+    fs: List[float]
+    vida: List[float]
+
+
+class DashboardResponse(BaseModel):
+    caso_base: DashboardCasoBase
+    heatmap: DashboardHeatmap
+    comparativa: DashboardComparativa
+    descomposicion: DashboardDescomposicion
+    sensibilidad_fs: DashboardSensibilidad
+    condicion_critica: CondicionCriticaResponse
+    advertencias: List[str] = Field(default_factory=list)

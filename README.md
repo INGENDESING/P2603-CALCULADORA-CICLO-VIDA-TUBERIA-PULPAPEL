@@ -1,4 +1,4 @@
-# P2603 SW-K60 — Aplicación web de vida útil de tuberías
+# P2603 SW-K60 — Evaluación de vida útil de tuberías
 
 Aplicación web interactiva para el cálculo de vida útil por corrosión-erosión en tuberías de acero inoxidable SS304 / SS304L y acero al carbono A53 Gr B. Basada en la metodología del informe técnico **P2603-PR-INF-001** Rev.1 (convención 2026-06-12).
 
@@ -6,31 +6,20 @@ Aplicación web interactiva para el cálculo de vida útil por corrosión-erosi�
 
 ```
 .
-├── webapp/
-│   ├── main.py              # Punto de entrada FastAPI
-│   ├── api.py               # Endpoints REST
-│   ├── schemas.py           # Validación Pydantic
-│   ├── corrosion_model.py   # Motor de cálculo puro
-│   ├── static/
-│   │   ├── index.html       # Frontend
-│   │   ├── app.js           # Lógica del frontend
-│   │   ├── style.css        # Estilos DML
-│   │   ├── plotly.min.js    # Plotly local
-│   │   └── downloads/       # Entregables descargables
-│   │       ├── P2603-PR-INF-001_Rev1.pdf
-│   │       └── P2603-PR-PPT-001_Rev1.pptx
-│   └── tests/
-│       └── test_modelo.py   # Tests de regresión
-├── requirements.txt         # Dependencias Python
-├── Procfile                 # Configuración de despliegue en Render
-├── .gitignore               # Exclusiones de Git
-└── README.md                # Este archivo
+├── webapp/                    # Aplicación web FastAPI + frontend HTML/JS
+├── requirements.txt           # Dependencias Python para Render
+├── render.yaml                # Especificación de despliegue en Render
+└── README.md                  # Este archivo
 ```
 
-## Ejecutar en desarrollo (Windows)
+## Aplicación web
+
+La carpeta `webapp/` contiene una aplicación web con backend **FastAPI** y frontend **HTML/JavaScript** que permite calcular la vida útil de tuberías bajo distintos escenarios de servicio, materiales, cédulas y condiciones de operación.
+
+### Ejecutar en desarrollo (Windows)
 
 ```powershell
-cd "C:\ruta\al\repo"
+cd "C:\Users\ingen\OneDrive\1.0 PROYECTOS DML\CARTON COLOMBIA\P2603 SW-K60\6.0 Evaluacion corrosion ss316l"
 .venv\Scripts\python -m uvicorn webapp.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
@@ -40,7 +29,7 @@ Accesos locales:
 - Documentación API: http://127.0.0.1:8000/docs
 - Health check: http://127.0.0.1:8000/health
 
-## Tests de regresión
+### Tests de regresión
 
 ```powershell
 .venv\Scripts\python webapp\tests\test_modelo.py
@@ -57,22 +46,27 @@ git init
 git add .
 git commit -m "P2603 SW-K60 webapp v1.0"
 git branch -M main
-git remote add origin https://github.com/TU_USUARIO/p2603-sw-k60-webapp.git
+git remote add origin https://github.com/TU_USUARIO/TU_REPO.git
 git push -u origin main
 ```
 
-> Reemplazar `TU_USUARIO/p2603-sw-k60-webapp` por el usuario y nombre del repositorio.
+> Reemplazar `TU_USUARIO/TU_REPO` por el usuario y nombre del repositorio.
 
 ### 2. Crear servicio en Render
 
 1. Ir a [render.com](https://render.com) e iniciar sesión.
 2. **New → Web Service → Connect a repository**.
 3. Seleccionar el repositorio de GitHub.
-4. Render detectará el `Procfile` y configurará:
+4. Configurar el servicio (o crear como **Blueprint** para que lea `render.yaml`):
    - **Build command:** `pip install -r requirements.txt`
-   - **Start command:** `gunicorn wsgi:application --bind 0.0.0.0:$PORT`
+   - **Start command:** `uvicorn webapp.main:app --host 0.0.0.0 --port $PORT`
    - **Health check path:** `/health`
 5. Hacer clic en **Deploy**.
+
+> **Importante (fix de timeout):** si el servicio ya existe y fue creado a mano, Render NO lee
+> el `Procfile` ni el `render.yaml`; el Start Command vive en el dashboard. Cambiar ahí el
+> comando antiguo `gunicorn wsgi:application ...` por el comando `uvicorn` anterior y
+> redesplegar con *Clear build cache & deploy*.
 
 Render asignará una URL pública tipo:
 
@@ -90,12 +84,13 @@ La raíz (`/`) redirige al frontend interactivo.
 
 ## Dependencias
 
-Las dependencias están en `requirements.txt`:
+Las dependencias de la webapp están en `requirements.txt`:
 
 - `fastapi==0.136.3`
 - `uvicorn[standard]==0.49.0`
 - `pydantic==2.13.4`
 - `openpyxl==3.1.5`
+
 
 ## Endpoints principales de la API
 
@@ -116,12 +111,12 @@ Documentación interactiva disponible en `/docs` una vez desplegada.
 
 ## Notas técnicas importantes
 
-- El modelo está basado en la metodología del informe **P2603-PR-INF-001** Rev.1 (convención 2026-06-12).
+- El modelo está basado en la metodología del informe **P2603-PR-INF-001** (convención 2026-06-12).
 - Los resultados incluyen advertencias de validez cuando se exceden rangos documentados (velocidad, consistencia, temperatura, factor de seguridad, etc.).
 - La calibración de 60 °C (`k₀,ref = 0,0035`, `β = 0,25`) es específica de la condición crítica documentada y requiere validación con mediciones UT de planta.
 - El factor de seguridad adoptado en el informe es **FS = 1,1**; otros valores generan advertencia.
 
-## Entregables incluidos
+## Entregables finales del proyecto
 
 - `webapp/static/downloads/P2603-PR-INF-001_Rev1.pdf` — Informe técnico Rev.1 (75 págs.)
 - `webapp/static/downloads/P2603-PR-PPT-001_Rev1.pptx` — Presentación Rev.1 (34 slides)

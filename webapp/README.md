@@ -85,26 +85,47 @@ webapp/
 El repositorio incluye `render.yaml` y `requirements.txt` para despliegue directo.
 
 1. Subir el proyecto a un repositorio de GitHub.
-2. En Render, crear un nuevo **Web Service** conectado al repositorio.
-3. Seleccionar **Blueprint** o dejar que Render detecte `render.yaml`.
-4. Render ejecutará:
+2. En Render, crear un nuevo **Web Service** conectado al repositorio (idealmente como **Blueprint** para que lea `render.yaml`).
+3. Comandos correctos:
    - Build: `pip install -r requirements.txt`
-   - Start: `gunicorn -w 2 -k uvicorn.workers.UvicornWorker webapp.main:app --bind 0.0.0.0:$PORT`
-5. Una vez desplegado, acceder a la URL asignada por Render; `/` redirige al frontend.
+   - Start: `uvicorn webapp.main:app --host 0.0.0.0 --port $PORT`
+4. Una vez desplegado, acceder a la URL asignada por Render; `/` redirige al frontend.
+
+### ⚠ Servicio existente con timeout (creado a mano)
+
+Los Web Services de Render creados manualmente **no leen** el `Procfile` ni el `render.yaml`: el comando de arranque vive en el **Start Command del dashboard de Render**. Si el servicio responde con timeout estando "Live", verificar en *Settings → Start Command* que NO quede el comando antiguo `gunicorn wsgi:application ...` (puente WSGI que bloqueaba las peticiones) y reemplazarlo por:
+
+```
+uvicorn webapp.main:app --host 0.0.0.0 --port $PORT
+```
+
+Luego *Manual Deploy → Clear build cache & deploy*.
 
 ### Variables de entorno
 
 | Variable | Valor por defecto | Descripción |
 |---|---|---|
 | `PORT` | 8000 | Puerto de escucha (Render lo sobrescribe automáticamente). |
+| `PYTHON_VERSION` | 3.13.4 | Versión de Python en Render (definida en `render.yaml`). |
 
 ### Health check
 
 Render verifica el endpoint `/health` para confirmar que la aplicación está activa.
 
+## Descargas de entregables
+
+Los endpoints `GET /api/descargas/informe` y `GET /api/descargas/presentacion` sirven los archivos de `webapp/static/downloads/`:
+
+| Archivo | Origen |
+|---|---|
+| `P2603-PR-INF-001_Rev1.pdf` | `P2603-PR-INF-001/P2603-PR-INF-001.pdf` |
+| `P2603-PR-PPT-001_Rev1.pptx` | `Presentacion/...Comparativa Sch 10S vs 40S_REV1.pptx` |
+
+**Al emitir una nueva revisión del informe o la presentación, re-copiar el archivo a `webapp/static/downloads/` con el mismo nombre.**
+
 ## Notas de despliegue
 
 - `allow_origins` está abierto (`["*"]`) para simplificar el despliegue inicial. Cuando se defina el dominio definitivo del cliente, restringir `allow_origins` en `webapp/main.py`.
-- Plotly se sirve localmente (`webapp/static/plotly.min.js`); no requiere conexión a internet.
+- Plotly y las fuentes (Titillium Web, JetBrains Mono) se cargan por CDN; sin internet el frontend degrada a las fuentes del sistema y los gráficos no se renderizan.
 - El puerto se lee de la variable de entorno `PORT` para compatibilidad con Render.
-- El comando `gunicorn` del `render.yaml` corre en Linux (Render). En Windows local, usar `uvicorn` como se indica en la sección de desarrollo.
+- En Windows local usar `uvicorn` como se indica en la sección de desarrollo (es el mismo comando que producción).
