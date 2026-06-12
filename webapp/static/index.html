@@ -23,38 +23,38 @@
 </header>
 
 <nav class="tabs" role="tablist">
-    <button class="tab active" data-tab="resumen" role="tab" aria-selected="true">Resumen Ejecutivo</button>
-    <button class="tab" data-tab="calculadora" role="tab" aria-selected="false">Calculadora</button>
+    <button class="tab active" data-tab="calculadora" role="tab" aria-selected="true">Calculadora</button>
+    <button class="tab" data-tab="resumen" role="tab" aria-selected="false">Resumen Ejecutivo</button>
 </nav>
 
 <main>
-    <!-- ================= PESTAÑA 1: RESUMEN EJECUTIVO ================= -->
-    <section id="tab-resumen" class="tab-panel active">
+    <!-- ================= PESTAÑA 2: RESUMEN EJECUTIVO (datos vivos de la calculadora) ================= -->
+    <section id="tab-resumen" class="tab-panel">
         <div class="dash-context panel" id="dash-context">
             <span class="pulse-dot"></span>
-            <span id="dash-descripcion">Cargando datos del modelo…</span>
+            <span id="dash-descripcion">El resumen se calcula con las condiciones de la pestaña Calculadora.</span>
         </div>
 
         <div class="kpi-row" id="dash-kpis">
             <div class="kpi-card" id="kpic-ss304">
-                <div class="kpi-label">Vida útil · SS304 Sch 40S</div>
+                <div class="kpi-label" id="dkpi-ss304-label">Vida útil · SS304</div>
                 <div class="kpi-value"><span id="dkpi-ss304">—</span><span class="kpi-unit"> años</span></div>
-                <div class="kpi-sub" id="dkpi-ss304-sub">NPS 10" · condición crítica</div>
+                <div class="kpi-sub" id="dkpi-ss304-sub">—</div>
             </div>
             <div class="kpi-card" id="kpic-ss304l">
-                <div class="kpi-label">Vida útil · SS304L Sch 40S</div>
+                <div class="kpi-label" id="dkpi-ss304l-label">Vida útil · SS304L dual cert.</div>
                 <div class="kpi-value"><span id="dkpi-ss304l">—</span><span class="kpi-unit"> años</span></div>
-                <div class="kpi-sub" id="dkpi-ss304l-sub">NPS 10" · condición crítica</div>
+                <div class="kpi-sub" id="dkpi-ss304l-sub">—</div>
             </div>
             <div class="kpi-card" id="kpic-a53">
-                <div class="kpi-label">Vida útil · A53 Gr B Sch 40</div>
+                <div class="kpi-label" id="dkpi-a53-label">Vida útil · A53 Gr B</div>
                 <div class="kpi-value"><span id="dkpi-a53">—</span><span class="kpi-unit"> años</span></div>
-                <div class="kpi-sub" id="dkpi-a53-sub">NPS 10" · condición crítica</div>
+                <div class="kpi-sub" id="dkpi-a53-sub">—</div>
             </div>
             <div class="kpi-card" id="kpic-tdisp">
-                <div class="kpi-label">Espesor disponible · SS304</div>
+                <div class="kpi-label" id="dkpi-tdisp-label">Espesor disponible</div>
                 <div class="kpi-value"><span id="dkpi-tdisp">—</span><span class="kpi-unit"> mm</span></div>
-                <div class="kpi-sub">Sch 40S NPS 10"</div>
+                <div class="kpi-sub" id="dkpi-tdisp-sub">—</div>
             </div>
             <div class="kpi-card" id="kpic-wtotal">
                 <div class="kpi-label">Tasa de desgaste W<sub>total</sub></div>
@@ -65,7 +65,7 @@
 
         <div class="dash-grid">
             <div class="panel plot-panel">
-                <h2>Vida útil proyectada — SS304 Sch 40S</h2>
+                <h2 id="dash-gauge-titulo">Vida útil proyectada</h2>
                 <div class="plot" id="dash-gauge"></div>
             </div>
             <div class="panel plot-panel">
@@ -73,7 +73,7 @@
                 <div class="plot" id="dash-heatmap"></div>
             </div>
             <div class="panel plot-panel wide">
-                <h2>Comparativa de materiales por diámetro — condición crítica 60 °C</h2>
+                <h2>Comparativa de materiales por diámetro — condiciones actuales</h2>
                 <div class="plot" id="dash-comparativa"></div>
             </div>
             <div class="panel plot-panel">
@@ -85,7 +85,7 @@
                 <div class="plot" id="dash-sens"></div>
             </div>
             <div class="panel wide">
-                <h2>Condición crítica 60 °C — vida útil proyectada (años)</h2>
+                <h2>Vida útil por diámetro (años) — condiciones actuales</h2>
                 <div id="dash-tabla-cc" class="table-wrap"></div>
             </div>
         </div>
@@ -96,8 +96,8 @@
         </section>
     </section>
 
-    <!-- ================= PESTAÑA 2: CALCULADORA ================= -->
-    <section id="tab-calculadora" class="tab-panel">
+    <!-- ================= PESTAÑA 1: CALCULADORA ================= -->
+    <section id="tab-calculadora" class="tab-panel active">
         <section class="panel">
             <h2>Condiciones de operación</h2>
             <div class="form-grid">
@@ -105,7 +105,7 @@
                     <label for="material">Material</label>
                     <select id="material">
                         <option value="SS304" selected>SS304</option>
-                        <option value="SS304L">SS304L</option>
+                        <option value="SS304L">SS304L dual cert. TP304/304L</option>
                         <option value="A53 GRB">A53 Gr B ERW</option>
                     </select>
                 </div>

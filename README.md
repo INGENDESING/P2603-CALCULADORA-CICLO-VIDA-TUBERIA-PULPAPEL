@@ -1,6 +1,6 @@
 # P2603 SW-K60 — Evaluación de vida útil de tuberías
 
-Aplicación web interactiva para el cálculo de vida útil por corrosión-erosión en tuberías de acero inoxidable SS304 / SS304L y acero al carbono A53 Gr B. Basada en la metodología del informe técnico **P2603-PR-INF-001** Rev.1 (convención 2026-06-12).
+Aplicación web interactiva para el cálculo de vida útil por corrosión-erosión en tuberías de acero inoxidable SS304 / SS304L y acero al carbono A53 Gr B. Basada en la metodología del informe técnico **P2603-PR-INF-001** Rev.2 (convención 2026-06-12; dual certificado TP304/304L).
 
 ## Contenido del repositorio
 
@@ -104,8 +104,8 @@ Las dependencias de la webapp están en `requirements.txt`:
 | GET | `/api/calcular/condicion-critica` | Condición crítica 60 °C calibrada |
 | POST | `/api/export/csv` | Exportar tabla a CSV |
 | POST | `/api/export/excel` | Exportar tabla a Excel |
-| GET | `/api/descargas/informe` | Descargar informe P2603-PR-INF-001 Rev.1 (PDF) |
-| GET | `/api/descargas/presentacion` | Descargar presentación P2603-PR-PPT-001 Rev.1 (PPTX) |
+| GET | `/api/descargas/informe` | Descargar informe P2603-PR-INF-001 Rev.2 (PDF) |
+| GET | `/api/descargas/presentacion` | Descargar presentación P2603-PR-PPT-001 Rev.2 (PPTX) |
 
 Documentación interactiva disponible en `/docs` una vez desplegada.
 
@@ -118,8 +118,8 @@ Documentación interactiva disponible en `/docs` una vez desplegada.
 
 ## Entregables finales del proyecto
 
-- `webapp/static/downloads/P2603-PR-INF-001_Rev1.pdf` — Informe técnico Rev.1 (75 págs.)
-- `webapp/static/downloads/P2603-PR-PPT-001_Rev1.pptx` — Presentación Rev.1 (34 slides)
+- `P2603-PR-INF-001/P2603-PR-INF-001.pdf` — Informe técnico Rev.2 (76 págs.)
+- `webapp/static/downloads/P2603-PR-PPT-001_Rev2.pptx` — Presentación Rev.2 (34 slides)
 - Aplicación web interactiva
 
 ## Aviso legal

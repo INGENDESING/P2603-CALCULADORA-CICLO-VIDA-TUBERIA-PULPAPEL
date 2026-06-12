@@ -52,8 +52,8 @@ El script compara 153 casos contra los valores publicados en el informe (SS304L 
 | GET | `/api/calcular/condicion-critica` | Condición crítica 60 °C calibrada |
 | POST | `/api/export/csv` | Exportar tabla a CSV |
 | POST | `/api/export/excel` | Exportar tabla a Excel |
-| GET | `/api/descargas/informe` | Descargar informe P2603-PR-INF-001 Rev.1 (PDF) |
-| GET | `/api/descargas/presentacion` | Descargar presentación P2603-PR-PPT-001 Rev.1 (PPTX) |
+| GET | `/api/descargas/informe` | Descargar informe P2603-PR-INF-001 Rev.2 (PDF) |
+| GET | `/api/descargas/presentacion` | Descargar presentación P2603-PR-PPT-001 Rev.2 (PPTX) |
 
 ## Limitaciones y advertencias
 
@@ -118,8 +118,8 @@ Los endpoints `GET /api/descargas/informe` y `GET /api/descargas/presentacion` s
 
 | Archivo | Origen |
 |---|---|
-| `P2603-PR-INF-001_Rev1.pdf` | `P2603-PR-INF-001/P2603-PR-INF-001.pdf` |
-| `P2603-PR-PPT-001_Rev1.pptx` | `Presentacion/...Comparativa Sch 10S vs 40S_REV1.pptx` |
+| `P2603-PR-INF-001_Rev2.pdf` | `P2603-PR-INF-001/P2603-PR-INF-001.pdf` |
+| `P2603-PR-PPT-001_Rev2.pptx` | `Presentacion/...Comparativa Sch 10S vs 40S_REV2.pptx` |
 
 **Al emitir una nueva revisión del informe o la presentación, re-copiar el archivo a `webapp/static/downloads/` con el mismo nombre.**
 

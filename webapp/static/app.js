@@ -172,6 +172,10 @@ function initTabs() {
             document.querySelectorAll('.tab-panel').forEach(p => {
                 p.classList.toggle('active', p.id === 'tab-' + btn.dataset.tab);
             });
+            // El Resumen se recalcula SIEMPRE con los datos vivos de la calculadora
+            if (btn.dataset.tab === 'resumen') {
+                loadDashboard();
+            }
             // Plotly colapsa en contenedores display:none; redimensionar al mostrar
             document.querySelectorAll('#tab-' + btn.dataset.tab + ' .plot').forEach(div => {
                 if (div.data) Plotly.Plots.resize(div);
@@ -179,9 +183,9 @@ function initTabs() {
             history.replaceState(null, '', '#' + btn.dataset.tab);
         });
     });
-    // Enlace directo: /static/index.html#calculadora abre esa pestaña
+    // Enlace directo: /static/index.html#resumen abre esa pestaña
     const hash = location.hash.replace('#', '');
-    if (hash && hash !== 'resumen') {
+    if (hash && hash !== 'calculadora') {
         const btn = document.querySelector(`.tab[data-tab="${hash}"]`);
         if (btn) btn.click();
     }
@@ -193,46 +197,62 @@ function initTabs() {
 async function loadDashboard() {
     let d;
     try {
-        d = await get('/dashboard');
+        d = await post('/dashboard', leerInputs());
     } catch (e) {
-        $('dash-descripcion').textContent = 'No fue posible cargar el dashboard: ' + e.message;
+        $('dash-descripcion').textContent = 'No fue posible calcular el resumen: ' + e.message;
         return;
     }
 
     const k = d.caso_base.kpis;
-    $('dash-descripcion').textContent = d.caso_base.descripcion + ' · Referencia ' + d.caso_base.nps_ref + ' · FS = ' + fmt(d.caso_base.parametros.fs, 1);
+    const npsCorto = d.caso_base.nps_ref.replace('NPS ', '');
+    const schSel = d.caso_base.schedule_ref;
+    const schA53 = schSel.replace('S', '');
+    $('dash-descripcion').textContent = d.caso_base.descripcion + ' · ' + d.caso_base.nps_ref + ' Sch ' + schSel;
 
-    // --- KPI cards
-    $('dkpi-ss304').textContent = fmt(k.vida_ss304_40s, 1);
-    $('dkpi-ss304l').textContent = fmt(k.vida_ss304l_40s, 1);
-    $('dkpi-a53').textContent = fmt(k.vida_a53_40, 1);
-    $('dkpi-tdisp').textContent = fmt(k.t_disp_ss304_40s, 2);
+    // --- KPI cards (etiquetas dinámicas según selección)
+    const subTxt = npsCorto + ' · ' + d.caso_base.escenario_ref;
+    $('dkpi-ss304-label').textContent = 'Vida útil · SS304 Sch ' + schSel;
+    $('dkpi-ss304l-label').textContent = 'Vida útil · SS304L dual Sch ' + schSel;
+    $('dkpi-a53-label').textContent = 'Vida útil · A53 Gr B Sch ' + schA53;
+    $('dkpi-tdisp-label').textContent = 'Espesor disponible · ' + d.caso_base.material_ref;
+    $('dkpi-ss304').textContent = fmt(k.vida_ss304, 1);
+    $('dkpi-ss304l').textContent = fmt(k.vida_ss304l, 1);
+    $('dkpi-a53').textContent = fmt(k.vida_a53, 1);
+    $('dkpi-ss304-sub').textContent = subTxt;
+    $('dkpi-ss304l-sub').textContent = subTxt + ' · S del TP304';
+    $('dkpi-a53-sub').textContent = subTxt;
+    $('dkpi-tdisp').textContent = fmt(k.t_disp, 2);
+    $('dkpi-tdisp-sub').textContent = d.caso_base.nps_ref + ' Sch ' + schSel;
     $('dkpi-wtotal').textContent = fmt(k.W_total, 4);
     $('dkpi-wdesc').textContent = 'W_quim ' + fmt(k.W_quim, 4) + ' + W_ero ' + fmt(k.W_ero, 4) + ' mm/año';
-    $('kpic-ss304').classList.add(vidaClass(k.vida_ss304_40s).replace('vida-', ''));
-    $('kpic-ss304l').classList.add(vidaClass(k.vida_ss304l_40s).replace('vida-', ''));
-    $('kpic-a53').classList.add(vidaClass(k.vida_a53_40).replace('vida-', ''));
+    ['kpic-ss304', 'kpic-ss304l', 'kpic-a53'].forEach(id => $(id).classList.remove('ok', 'warn', 'crit'));
+    $('kpic-ss304').classList.add(vidaClass(k.vida_ss304).replace('vida-', ''));
+    $('kpic-ss304l').classList.add(vidaClass(k.vida_ss304l).replace('vida-', ''));
+    $('kpic-a53').classList.add(vidaClass(k.vida_a53).replace('vida-', ''));
 
-    // --- Gauge vida útil SS304 40S
+    // --- Gauge: vida útil del material seleccionado
+    const vidaSel = { 'SS304': k.vida_ss304, 'SS304L': k.vida_ss304l, 'A53 GRB': k.vida_a53 }[d.caso_base.material_ref];
+    $('dash-gauge-titulo').textContent = 'Vida útil proyectada — ' + d.caso_base.material_ref + ' ' + npsCorto + ' Sch ' + schSel;
+    const rangoMax = Math.max(50, Math.ceil(vidaSel * 1.25 / 10) * 10);
     Plotly.newPlot('dash-gauge', [{
         type: 'indicator',
         mode: 'gauge+number',
-        value: k.vida_ss304_40s,
+        value: vidaSel,
         number: { suffix: ' años', font: { family: 'JetBrains Mono, monospace', color: THEME.text, size: 36 }, valueformat: ',.1f' },
         gauge: {
-            axis: { range: [0, 100], tickcolor: THEME.dim, tickfont: { color: THEME.dim } },
+            axis: { range: [0, rangoMax], tickcolor: THEME.dim, tickfont: { color: THEME.dim } },
             bar: { color: THEME.accent, thickness: 0.28 },
             bgcolor: 'rgba(0,0,0,0)',
             borderwidth: 0,
             steps: [
                 { range: [0, 10], color: 'rgba(255,83,112,0.25)' },
                 { range: [10, 25], color: 'rgba(255,183,77,0.20)' },
-                { range: [25, 100], color: 'rgba(0,230,118,0.10)' },
+                { range: [25, rangoMax], color: 'rgba(0,230,118,0.10)' },
             ],
         },
     }], THEME.layout({ margin: { t: 30, b: 10, l: 30, r: 30 } }), PLOT_CONFIG);
 
-    // --- Heatmap material × escenario
+    // --- Heatmap material × escenario (condiciones actuales)
     const escLabels = d.heatmap.escenarios.map(e => escenariosNombres[e] || e);
     Plotly.newPlot('dash-heatmap', [{
         type: 'heatmap',
@@ -242,12 +262,17 @@ async function loadDashboard() {
         colorscale: THEME.heatscale,
         texttemplate: '%{z:,.0f} a',
         textfont: { family: 'JetBrains Mono, monospace' },
-        customdata: d.heatmap.valores.map(() => d.heatmap.condiciones.map(c => [c.T, c.v, c.Cs])),
-        hovertemplate: '%{y} · %{x}<br>Vida útil: %{z:,.1f} años<br>T = %{customdata[0]} °C · v = %{customdata[1]} m/s · Cs = %{customdata[2]} %<extra></extra>',
+        hovertemplate: '%{y} · %{x}<br>Vida útil: %{z:,.1f} años<extra></extra>',
         colorbar: { tickfont: { color: THEME.dim }, title: { text: 'años', font: { color: THEME.dim } } },
-    }], THEME.layout({ margin: { t: 20, b: 60, l: 80, r: 20 } }), PLOT_CONFIG);
+    }], THEME.layout({
+        margin: { t: 20, b: 60, l: 80, r: 20 },
+        annotations: [{
+            text: d.heatmap.nota, showarrow: false, xref: 'paper', yref: 'paper',
+            x: 0, y: -0.22, font: { size: 10, color: THEME.dim },
+        }],
+    }), PLOT_CONFIG);
 
-    // --- Comparativa de materiales (condición crítica)
+    // --- Comparativa de materiales por NPS (condiciones actuales)
     const colores = { ss304_s10: 'rgba(0,230,118,0.45)', ss304L_s10: 'rgba(0,212,255,0.45)', ss304_s40: THEME.accent, ss304L_s40: THEME.data, a53_s40: THEME.crit };
     Plotly.newPlot('dash-comparativa', d.comparativa.series.map(s => ({
         x: d.comparativa.nps,
@@ -290,17 +315,19 @@ async function loadDashboard() {
         yaxis: { title: { text: 'Vida útil (años)' }, gridcolor: THEME.grid },
     }), PLOT_CONFIG);
 
-    // --- Tabla condición crítica
-    const cc = d.condicion_critica;
+    // --- Tabla por NPS a condiciones actuales (transpuesta de la comparativa)
     $('dash-tabla-cc').innerHTML = '';
     $('dash-tabla-cc').appendChild(buildTable({
-        headers: ['NPS', 'SS304 Sch 10S', 'SS304L Sch 10S', 'SS304 Sch 40S', 'SS304L Sch 40S', 'A53 Gr B Sch 40'],
-        rows: cc.filas.map(r => [r.nps, r.ss304_s10, r.ss304L_s10, r.ss304_s40, r.ss304L_s40, r.a53_s40]),
+        headers: ['NPS', ...d.comparativa.series.map(s => s.nombre)],
+        rows: d.comparativa.nps.map((nps, i) => [
+            nps,
+            ...d.comparativa.series.map(s => fmt(s.valores[i], 1)),
+        ]),
         cellClass: vidaCellClass,
     }));
 
     // --- Advertencias
-    const advertencias = [...(d.advertencias || []), ...(cc.advertencias || [])];
+    const advertencias = d.advertencias || [];
     const list = $('dash-warnings-list');
     list.innerHTML = '';
     advertencias.forEach(msg => {
@@ -510,9 +537,8 @@ async function exportar(formato) {
    INIT
    ========================================================================== */
 document.addEventListener('DOMContentLoaded', () => {
-    initTabs();
-    loadDashboard();
     actualizarSchedules();
+    initTabs();
     actualizarPulpaRefinada();
     $('material').addEventListener('change', actualizarSchedules);
     $('pulpa-refinada').addEventListener('change', actualizarPulpaRefinada);

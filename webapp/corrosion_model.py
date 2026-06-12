@@ -57,10 +57,13 @@ MATERIALS = {
         'k0': 0.008,
         'gamma': 1.0,
     },
+    # SS304L dual certificado TP304/TP304L (ASTM A312): química L (C <= 0,030 %)
+    # con resistencia mecánica certificada del TP304 -> diseño con S del TP304
+    # (ASME B31.3 Tabla A-1). Decisión Rev.2 (2026-06-12).
     'SS304L': {
         'pipes': PIPES_SS,
         'schedules': SCHEDULES_SS,
-        'S_table': {38: 115, 100: 115, 150: 115, 200: 104, 250: 96, 300: 90},
+        'S_table': {38: 138, 100: 138, 150: 138, 200: 110, 250: 103, 300: 97, 350: 92, 400: 88},
         'E': 1.0,
         'c': 1.5,
         'k0': 0.008,

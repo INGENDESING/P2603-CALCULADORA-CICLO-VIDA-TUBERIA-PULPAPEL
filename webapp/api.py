@@ -20,10 +20,10 @@ from .schemas import (
     CondicionCriticaResponse,
     DashboardCasoBase,
     DashboardComparativa,
-    DashboardCondicionTipica,
     DashboardDescomposicion,
     DashboardHeatmap,
     DashboardKpis,
+    DashboardRequest,
     DashboardResponse,
     DashboardSensibilidad,
     DashboardSerie,
@@ -52,7 +52,7 @@ def get_materiales():
     for mat, data in cm.MATERIALS.items():
         desc = {
             'SS304': 'Austenítico inoxidable SS304 (sin soldadura, E=1.0)',
-            'SS304L': 'Austenítico inoxidable SS304L (bajo carbono, γ=0.85)',
+            'SS304L': 'SS304L dual certificado TP304/304L (S del TP304, γ=0.85)',
             'A53 GRB': 'Acero al carbono A53 Gr B ERW (E=0.85)',
         }[mat]
         materiales.append(MaterialInfo(material=mat, schedules=data['schedules'], descripcion=desc))
@@ -231,128 +231,180 @@ def calcular_condicion_critica():
 
 
 # =============================================================================
-# DASHBOARD EJECUTIVO
+# DASHBOARD EJECUTIVO (derivado de los inputs de la calculadora)
 # =============================================================================
 
-_SERIES_COMPARATIVA = [
-    ('ss304_s10', 'SS304 Sch 10S'),
-    ('ss304L_s10', 'SS304L Sch 10S'),
-    ('ss304_s40', 'SS304 Sch 40S'),
-    ('ss304L_s40', 'SS304L Sch 40S'),
-    ('a53_s40', 'A53 Gr B Sch 40'),
-]
+def _sch_equivalente(material: str, schedule: str) -> str:
+    """Mapea la cédula entre familias (10S <-> 10) para comparar materiales."""
+    if material == 'A53 GRB':
+        return schedule.replace('S', '')
+    return schedule if schedule.endswith('S') else schedule + 'S'
 
 
-@router.get("/dashboard", response_model=DashboardResponse)
-def get_dashboard():
+def _k0_para_material(material: str, k0_override) -> float | None:
     """
-    Datos consolidados para el Resumen Ejecutivo en una sola llamada.
-    Caso base = condición crítica 60 °C calibrada del informe, referencia NPS 10".
+    Si el usuario aplica k0 reducido por fibra refinada (propiedad del fluido),
+    se escala simétricamente al A53 (trato simétrico, decisión C-4b del informe).
     """
-    nps_ref = 'NPS 10"'
+    if k0_override is None:
+        return None
+    if material == 'A53 GRB':
+        return cm.MATERIALS['A53 GRB']['k0'] * (k0_override / cm.MATERIALS['SS304']['k0'])
+    return k0_override
 
-    # KPIs y descomposición W_quim/W_ero (condición crítica, Sch 40S/40)
-    detalle = cm.condicion_critica_detalle(nps_ref)
-    kpis = DashboardKpis(
-        vida_ss304_40s=round(detalle['SS304']['vida_util'], 1),
-        vida_ss304l_40s=round(detalle['SS304L']['vida_util'], 1),
-        vida_a53_40=round(detalle['A53 GRB']['vida_util'], 1),
-        t_disp_ss304_40s=round(detalle['SS304']['t_disp'], 2),
-        W_quim=round(detalle['SS304']['W_quim'], 4),
-        W_ero=round(detalle['SS304']['W_ero'], 4),
-        W_total=round(detalle['SS304']['W_total'], 4),
-        unidades={'vida': 'años', 't_disp': 'mm', 'W': 'mm/año'},
-    )
-    caso_base = DashboardCasoBase(
-        descripcion="Condición crítica 60 °C — Alcalino, Cs = 6 %, v = 3,5 m/s, pulpa refinada (β = 0,25, k₀,ref = 0,0035)",
-        parametros={'T': 60.0, 'Cs': 6.0, 'v': 3.5, 'beta': 0.25, 'k0_ref': 0.0035, 'fs': cm.DEFAULT_FS},
-        nps_ref=nps_ref,
-        kpis=kpis,
-    )
 
-    # Heatmap material × escenario a condiciones típicas (NPS 10", Sch 40S/40)
-    materiales = list(cm.MATERIALS.keys())
-    escenarios = list(cm.ESCENARIOS.keys())
-    condiciones = [
-        DashboardCondicionTipica(
-            escenario=e, T=cm.ESCENARIOS[e]['T_ref'], v=cm.ESCENARIOS[e]['v_tip'], Cs=cm.ESCENARIOS[e]['Cs_tip']
+@router.post("/dashboard", response_model=DashboardResponse)
+def post_dashboard(req: DashboardRequest):
+    """
+    Resumen Ejecutivo calculado con los datos vivos de la calculadora:
+    KPIs por material, heatmap por escenario, comparativa por NPS,
+    descomposición de tasas y sensibilidad al FS — todo a las condiciones dadas.
+    """
+    try:
+        materiales = list(cm.MATERIALS.keys())
+        escenarios = list(cm.ESCENARIOS.keys())
+        T_eff = req.T if req.T is not None else cm.ESCENARIOS[req.escenario]['T_ref']
+
+        # --- KPIs: los 3 materiales al NPS y cédula equivalente seleccionados
+        detalle = {}
+        for mat in materiales:
+            sch = _sch_equivalente(mat, req.schedule)
+            detalle[mat] = cm.calc_vida(
+                OD=cm.get_OD(mat, req.nps),
+                t_nom=cm.get_t_nom(mat, req.nps, sch),
+                material=mat,
+                escenario=req.escenario,
+                Cs=req.Cs,
+                v=req.v,
+                T=req.T,
+                beta=req.beta,
+                k0_override=_k0_para_material(mat, req.k0_override),
+                fs=req.fs,
+            )
+        sel = detalle[req.material]
+        kpis = DashboardKpis(
+            vida_ss304=round(detalle['SS304']['vida_util'], 1),
+            vida_ss304l=round(detalle['SS304L']['vida_util'], 1),
+            vida_a53=round(detalle['A53 GRB']['vida_util'], 1),
+            t_disp=round(sel['t_disp'], 2),
+            W_quim=round(sel['W_quim'], 4),
+            W_ero=round(sel['W_ero'], 4),
+            W_total=round(sel['W_total'], 4),
+            S=round(sel['S'], 1),
+            unidades={'vida': 'años', 't_disp': 'mm', 'W': 'mm/año', 'S': 'MPa'},
         )
-        for e in escenarios
-    ]
-    valores = []
-    for mat in materiales:
-        sch = '40' if mat == 'A53 GRB' else '40S'
-        OD = cm.get_OD(mat, nps_ref)
-        t_nom = cm.get_t_nom(mat, nps_ref, sch)
-        fila = []
-        for e in escenarios:
-            esc = cm.ESCENARIOS[e]
-            res = cm.calc_vida(OD, t_nom, mat, e, Cs=esc['Cs_tip'], v=esc['v_tip'], T=None, beta=0.0, fs=cm.DEFAULT_FS)
-            fila.append(round(res['vida_util'], 1))
-        valores.append(fila)
-    heatmap = DashboardHeatmap(
-        materiales=materiales,
-        escenarios=escenarios,
-        escenarios_nombres=[cm.ESCENARIOS[e]['nombre'] for e in escenarios],
-        condiciones=condiciones,
-        valores=valores,
-    )
+        caso_base = DashboardCasoBase(
+            descripcion=(
+                f"{cm.ESCENARIOS[req.escenario]['nombre']} · T = {T_eff:.0f} °C · "
+                f"v = {req.v:.1f} m/s · Cs = {req.Cs:.1f} % · FS = {req.fs:.1f}"
+                + (f" · pulpa refinada (β = {req.beta:.2f})" if req.beta > 0 else "")
+            ),
+            parametros={'T': T_eff, 'Cs': req.Cs, 'v': req.v, 'beta': req.beta,
+                        'k0_override': req.k0_override, 'fs': req.fs},
+            material_ref=req.material,
+            nps_ref=req.nps,
+            schedule_ref=req.schedule,
+            escenario_ref=req.escenario,
+            kpis=kpis,
+        )
 
-    # Comparativa de materiales por NPS (condición crítica completa, 6 diámetros)
-    filas_cc = cm.condicion_critica_60C()
-    comparativa = DashboardComparativa(
-        nps=[f['nps'] for f in filas_cc],
-        series=[
-            DashboardSerie(id=sid, nombre=nombre, valores=[f[sid] for f in filas_cc])
-            for sid, nombre in _SERIES_COMPARATIVA
-        ],
-    )
+        # --- Heatmap material × escenario a las condiciones del usuario
+        valores = []
+        for mat in materiales:
+            sch = _sch_equivalente(mat, req.schedule)
+            OD = cm.get_OD(mat, req.nps)
+            t_nom = cm.get_t_nom(mat, req.nps, sch)
+            fila = []
+            for e in escenarios:
+                res = cm.calc_vida(OD, t_nom, mat, e, Cs=req.Cs, v=req.v, T=req.T,
+                                   beta=req.beta, k0_override=_k0_para_material(mat, req.k0_override), fs=req.fs)
+                fila.append(round(res['vida_util'], 1))
+            valores.append(fila)
+        heatmap = DashboardHeatmap(
+            materiales=materiales,
+            escenarios=escenarios,
+            escenarios_nombres=[cm.ESCENARIOS[e]['nombre'] for e in escenarios],
+            valores=valores,
+            nota=f"{req.nps} Sch {req.schedule} equivalente · T = {T_eff:.0f} °C · v = {req.v:.1f} m/s · Cs = {req.Cs:.1f} %",
+        )
 
-    # Descomposición W_quim vs W_ero por material (condición crítica, NPS 10")
-    descomposicion = DashboardDescomposicion(
-        materiales=materiales,
-        W_quim=[round(detalle[m]['W_quim'], 4) for m in materiales],
-        W_ero=[round(detalle[m]['W_ero'], 4) for m in materiales],
-        unidad='mm/año',
-    )
+        # --- Comparativa por NPS: 10S y 40S de inoxidables + A53 Sch 40
+        series_def = [
+            ('ss304_s10', 'SS304 Sch 10S', 'SS304', '10S'),
+            ('ss304L_s10', 'SS304L Sch 10S', 'SS304L', '10S'),
+            ('ss304_s40', 'SS304 Sch 40S', 'SS304', '40S'),
+            ('ss304L_s40', 'SS304L Sch 40S', 'SS304L', '40S'),
+            ('a53_s40', 'A53 Gr B Sch 40', 'A53 GRB', '40'),
+        ]
+        series = []
+        for sid, nombre, mat, sch in series_def:
+            vals = []
+            for nps in cm.DIAMETROS_ORDEN:
+                res = cm.calc_vida(
+                    cm.get_OD(mat, nps), cm.get_t_nom(mat, nps, sch), mat, req.escenario,
+                    Cs=req.Cs, v=req.v, T=req.T, beta=req.beta,
+                    k0_override=_k0_para_material(mat, req.k0_override), fs=req.fs,
+                )
+                vals.append(round(res['vida_util'], 1))
+            series.append(DashboardSerie(id=sid, nombre=nombre, valores=vals))
+        comparativa = DashboardComparativa(
+            nps=[n.replace('NPS ', '') for n in cm.DIAMETROS_ORDEN],
+            series=series,
+        )
 
-    # Sensibilidad al FS (SS304 NPS 10" Sch 40S en la condición crítica calibrada;
-    # con SS304 a 60 °C calc_vida reproduce el mismo W_quim que el override Arrhenius)
-    fs_vals = tuple(round(1.0 + 0.1 * i, 1) for i in range(11))  # 1.0 … 2.0
-    sens = cm.sensibilidad_fs(
-        OD=cm.get_OD('SS304', nps_ref),
-        t_nom=cm.get_t_nom('SS304', nps_ref, '40S'),
-        material='SS304',
-        escenario='Alcalino',
-        Cs=6.0,
-        v=3.5,
-        T=60.0,
-        beta=0.25,
-        k0_override=0.0035,
-        fs_vals=fs_vals,
-    )
-    sensibilidad = DashboardSensibilidad(
-        material='SS304',
-        nps=nps_ref,
-        schedule='40S',
-        fs=list(fs_vals),
-        vida=[round(sens[f], 1) for f in fs_vals],
-    )
+        # --- Descomposición W_quim vs W_ero por material (NPS/cédula seleccionados)
+        descomposicion = DashboardDescomposicion(
+            materiales=materiales,
+            W_quim=[round(detalle[m]['W_quim'], 4) for m in materiales],
+            W_ero=[round(detalle[m]['W_ero'], 4) for m in materiales],
+            unidad='mm/año',
+        )
 
-    condicion_critica = calcular_condicion_critica()
+        # --- Sensibilidad al FS para el material/NPS/cédula seleccionados
+        fs_vals = tuple(round(1.0 + 0.1 * i, 1) for i in range(11))  # 1.0 … 2.0
+        sens = cm.sensibilidad_fs(
+            OD=cm.get_OD(req.material, req.nps),
+            t_nom=cm.get_t_nom(req.material, req.nps, req.schedule),
+            material=req.material,
+            escenario=req.escenario,
+            Cs=req.Cs,
+            v=req.v,
+            T=req.T,
+            beta=req.beta,
+            k0_override=req.k0_override,
+            fs_vals=fs_vals,
+        )
+        sensibilidad = DashboardSensibilidad(
+            material=req.material,
+            nps=req.nps,
+            schedule=req.schedule,
+            fs=list(fs_vals),
+            vida=[round(sens[f], 1) for f in fs_vals],
+        )
 
-    return DashboardResponse(
-        caso_base=caso_base,
-        heatmap=heatmap,
-        comparativa=comparativa,
-        descomposicion=descomposicion,
-        sensibilidad_fs=sensibilidad,
-        condicion_critica=condicion_critica,
-        advertencias=[
-            "Los KPIs y la comparativa corresponden al modelo calibrado con la experiencia de planta (condición crítica 60 °C); no constituyen una predicción independiente y requieren validación con mediciones UT.",
-            "El mapa de calor usa las condiciones típicas (T, v, Cs) de cada escenario de servicio sin pulpa refinada (β = 0).",
-        ],
-    )
+        advertencias = list(sel['advertencias'])
+        advertencias.append(
+            "SS304L modelado como dual certificado TP304/TP304L (ASTM A312): diseño con S del TP304 "
+            "y química de bajo carbono; especificarlo así en la orden de compra."
+        )
+        if req.k0_override is not None:
+            advertencias.append(
+                "El coeficiente de erosión reducido por fibra refinada se aplica simétricamente al A53 "
+                "(propiedad del fluido, no del material)."
+            )
+
+        return DashboardResponse(
+            caso_base=caso_base,
+            heatmap=heatmap,
+            comparativa=comparativa,
+            descomposicion=descomposicion,
+            sensibilidad_fs=sensibilidad,
+            advertencias=advertencias,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error interno: {e}")
 
 
 # =============================================================================
@@ -465,20 +517,20 @@ DOWNLOADS_DIR = Path(__file__).resolve().parent / "static" / "downloads"
 
 @router.get("/descargas/informe")
 def descargar_informe():
-    """Descarga el informe técnico P2603-PR-INF-001 Rev.1 (PDF)."""
-    f = DOWNLOADS_DIR / "P2603-PR-INF-001_Rev1.pdf"
+    """Descarga el informe técnico P2603-PR-INF-001 Rev.2 (PDF)."""
+    f = DOWNLOADS_DIR / "P2603-PR-INF-001_Rev2.pdf"
     if not f.exists():
         raise HTTPException(
             status_code=404,
             detail="El informe PDF no está disponible en el servidor. Copie el archivo a webapp/static/downloads/.",
         )
-    return FileResponse(f, media_type="application/pdf", filename="P2603-PR-INF-001_Rev1.pdf")
+    return FileResponse(f, media_type="application/pdf", filename="P2603-PR-INF-001_Rev2.pdf")
 
 
 @router.get("/descargas/presentacion")
 def descargar_presentacion():
-    """Descarga la presentación P2603-PR-PPT-001 Rev.1 (PPTX)."""
-    f = DOWNLOADS_DIR / "P2603-PR-PPT-001_Rev1.pptx"
+    """Descarga la presentación P2603-PR-PPT-001 Rev.2 (PPTX)."""
+    f = DOWNLOADS_DIR / "P2603-PR-PPT-001_Rev2.pptx"
     if not f.exists():
         raise HTTPException(
             status_code=404,
@@ -487,5 +539,5 @@ def descargar_presentacion():
     return FileResponse(
         f,
         media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
-        filename="P2603-PR-PPT-001_Rev1.pptx",
+        filename="P2603-PR-PPT-001_Rev2.pptx",
     )

@@ -265,46 +265,48 @@ class EscenariosResponse(BaseModel):
 
 
 # =============================================================================
-# DASHBOARD EJECUTIVO
+# DASHBOARD EJECUTIVO (calculado con los datos vivos de la calculadora)
 # =============================================================================
 
+class DashboardRequest(CalcularVidaRequest):
+    """Mismos inputs que el cálculo unitario; el dashboard se deriva de ellos."""
+    pass
+
+
 class DashboardKpis(BaseModel):
-    vida_ss304_40s: float
-    vida_ss304l_40s: float
-    vida_a53_40: float
-    t_disp_ss304_40s: float
+    vida_ss304: float
+    vida_ss304l: float
+    vida_a53: float
+    t_disp: float
     W_quim: float
     W_ero: float
     W_total: float
+    S: float
     unidades: Dict[str, str]
 
 
 class DashboardCasoBase(BaseModel):
     descripcion: str
-    parametros: Dict[str, float]
+    parametros: Dict[str, Optional[float]]
+    material_ref: str
     nps_ref: str
+    schedule_ref: str
+    escenario_ref: str
     kpis: DashboardKpis
-
-
-class DashboardCondicionTipica(BaseModel):
-    escenario: str
-    T: float
-    v: float
-    Cs: float
 
 
 class DashboardHeatmap(BaseModel):
     materiales: List[str]
     escenarios: List[str]
     escenarios_nombres: List[str]
-    condiciones: List[DashboardCondicionTipica]
     valores: List[List[float]]
+    nota: str
 
 
 class DashboardSerie(BaseModel):
     id: str
     nombre: str
-    valores: List[int]
+    valores: List[float]
 
 
 class DashboardComparativa(BaseModel):
@@ -333,5 +335,4 @@ class DashboardResponse(BaseModel):
     comparativa: DashboardComparativa
     descomposicion: DashboardDescomposicion
     sensibilidad_fs: DashboardSensibilidad
-    condicion_critica: CondicionCriticaResponse
     advertencias: List[str] = Field(default_factory=list)
