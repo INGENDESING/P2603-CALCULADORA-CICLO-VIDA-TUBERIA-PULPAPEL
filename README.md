@@ -96,7 +96,6 @@ Las dependencias están en `requirements.txt`:
 - `uvicorn[standard]==0.49.0`
 - `pydantic==2.13.4`
 - `openpyxl==3.1.5`
-- `gunicorn==26.0.0` (opcional; no se usa en Render, solo si preferís gunicorn+uvicorn)
 
 ## Endpoints principales de la API
 
