@@ -272,39 +272,6 @@ def export_csv(req: ExportRequest):
         raise HTTPException(status_code=500, detail=f"Error interno: {e}")
 
 
-# =============================================================================
-# DESCARGA DE ENTREGABLES
-# =============================================================================
-
-DOWNLOADS_DIR = Path(__file__).resolve().parent / "static" / "downloads"
-
-
-@router.get("/descargas/informe")
-def descargar_informe():
-    """Devuelve el informe técnico P2603-PR-INF-001 Rev.1 en PDF."""
-    path = DOWNLOADS_DIR / "P2603-PR-INF-001_Rev1.pdf"
-    if not path.exists():
-        raise HTTPException(status_code=404, detail="Informe no encontrado")
-    return FileResponse(
-        path,
-        media_type="application/pdf",
-        filename="P2603-PR-INF-001_Rev1.pdf",
-    )
-
-
-@router.get("/descargas/presentacion")
-def descargar_presentacion():
-    """Devuelve la presentación P2603-PR-PPT-001 Rev.1 en PowerPoint."""
-    path = DOWNLOADS_DIR / "P2603-PR-PPT-001_Rev1.pptx"
-    if not path.exists():
-        raise HTTPException(status_code=404, detail="Presentación no encontrada")
-    return FileResponse(
-        path,
-        media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
-        filename="P2603-PR-PPT-001_Rev1.pptx",
-    )
-
-
 @router.post("/export/excel")
 def export_excel(req: ExportRequest):
     """Exporta la tabla paramétrica a Excel (.xlsx)."""

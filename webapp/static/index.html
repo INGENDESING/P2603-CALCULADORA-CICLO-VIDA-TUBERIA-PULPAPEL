@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>P2603 SW-K60 — Vida útil de tuberías</title>
-    <script src="/static/plotly.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
@@ -14,18 +14,6 @@
 </header>
 
 <main>
-    <section class="panel downloads-panel">
-        <h2>Entregables del proyecto</h2>
-        <div class="actions">
-            <a href="/api/descargas/informe" class="download-link" download>
-                <button>📄 Descargar informe Rev.1 (PDF)</button>
-            </a>
-            <a href="/api/descargas/presentacion" class="download-link" download>
-                <button>📊 Descargar presentación Rev.1 (PPTX)</button>
-            </a>
-        </div>
-    </section>
-
     <section class="panel">
         <h2>Condiciones de operación</h2>
         <div class="form-grid">
@@ -67,19 +55,25 @@
             </div>
             <div class="field">
                 <label for="v">Velocidad v (m/s)</label>
-                <input type="number" id="v" value="2.5" min="0" max="8" step="0.1">
+                <input type="number" id="v" value="3.5" min="0" max="8" step="0.1">
             </div>
             <div class="field">
                 <label for="T">Temperatura T (°C)</label>
-                <input type="number" id="T" value="" placeholder="Por defecto escenario" min="20" max="250" step="1">
+                <input type="number" id="T" value="80" min="20" max="250" step="1">
+            </div>
+            <div class="field checkbox-field">
+                <label for="pulpa-refinada">
+                    <input type="checkbox" id="pulpa-refinada" checked>
+                    Pulpa refinada (β = 0,25, k₀,ref = 0,0035)
+                </label>
             </div>
             <div class="field">
                 <label for="beta">β pulpa refinada</label>
-                <input type="number" id="beta" value="0" min="0" max="0.9" step="0.05">
+                <input type="number" id="beta" value="0.25" min="0" max="0.9" step="0.05" readonly>
             </div>
             <div class="field">
                 <label for="k0_override">k₀ override</label>
-                <input type="number" id="k0_override" value="" placeholder="Por defecto material" min="0" step="0.0001">
+                <input type="number" id="k0_override" value="0.0035" min="0" step="0.0001" readonly>
             </div>
             <div class="field">
                 <label for="fs">Factor de seguridad FS</label>

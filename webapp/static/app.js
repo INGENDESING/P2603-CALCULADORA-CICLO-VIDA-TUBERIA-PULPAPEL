@@ -37,6 +37,12 @@ function actualizarSchedules() {
     });
 }
 
+function actualizarPulpaRefinada() {
+    const refinada = $('pulpa-refinada').checked;
+    $('beta').value = refinada ? '0.25' : '0.0';
+    $('k0_override').value = refinada ? '0.0035' : '';
+}
+
 function leerInputs() {
     const T = $('T').value.trim();
     const k0 = $('k0_override').value.trim();
@@ -279,7 +285,9 @@ async function exportar(formato) {
 
 document.addEventListener('DOMContentLoaded', () => {
     actualizarSchedules();
+    actualizarPulpaRefinada();
     $('material').addEventListener('change', actualizarSchedules);
+    $('pulpa-refinada').addEventListener('change', actualizarPulpaRefinada);
     $('btn-vida').addEventListener('click', calcularVidaUtil);
     $('btn-tabla').addEventListener('click', calcularTabla);
     $('btn-sens').addEventListener('click', calcularSensibilidad);
