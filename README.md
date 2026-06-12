@@ -22,7 +22,7 @@ Aplicación web interactiva para el cálculo de vida útil por corrosión-erosi�
 │   └── tests/
 │       └── test_modelo.py   # Tests de regresión
 ├── requirements.txt         # Dependencias Python
-├── render.yaml              # Configuración de despliegue en Render
+├── Procfile                 # Configuración de despliegue en Render
 ├── .gitignore               # Exclusiones de Git
 └── README.md                # Este archivo
 ```
@@ -68,7 +68,7 @@ git push -u origin main
 1. Ir a [render.com](https://render.com) e iniciar sesión.
 2. **New → Web Service → Connect a repository**.
 3. Seleccionar el repositorio de GitHub.
-4. Render detectará el archivo `render.yaml` y configurará:
+4. Render detectará el `Procfile` y configurará:
    - **Build command:** `pip install -r requirements.txt`
    - **Start command:** `uvicorn webapp.main:app --host 0.0.0.0 --port $PORT`
    - **Health check path:** `/health`
