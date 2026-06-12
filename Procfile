@@ -1,1 +1,1 @@
-web: bash start.sh
+web: gunicorn -w 1 -k uvicorn.workers.UvicornWorker asgi:app --bind 0.0.0.0:$PORT

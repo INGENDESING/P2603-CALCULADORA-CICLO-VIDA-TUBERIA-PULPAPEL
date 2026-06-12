@@ -1,5 +1,6 @@
 # Dependencias para desplegar la webapp P2603 SW-K60 en Render
 fastapi==0.136.3
 uvicorn[standard]==0.49.0
+gunicorn==26.0.0
 pydantic==2.13.4
 openpyxl==3.1.5
